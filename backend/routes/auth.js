@@ -1,11 +1,12 @@
-import { generateAuthLink } from '../controllers/auth';
-
+const { generateAuthLink } = require('../controllers/auth');
 const express=require('express');
-
-
+const { emailValidationSchema,validate } = require('../middlewares/validator');
 const authRouter=express.Router();
 
-authRouter.post('/generate-link', generateAuthLink);
+
+authRouter.post('/generate-link',
+    validate(emailValidationSchema)
+    ,generateAuthLink);
 
 
-export default authRouter
+module.exports = authRouter;
