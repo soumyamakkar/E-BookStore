@@ -2,6 +2,7 @@ const crypto=require('crypto');
 const UserModel = require('../models/user');
 const nodemailer=require('nodemailer');
 const VerificationTokenModel = require('../models/verificationToken');
+const mail = require('../utils/mail');
 
 const generateAuthLink=async (req,res)=>{
     //Generate authentication link
@@ -10,7 +11,6 @@ const generateAuthLink=async (req,res)=>{
 
     /*
     Generate unique token for every user
-
     store that token securely inside the database
     create a link which includes that secure token and user info 
     send that link to users email address
@@ -29,26 +29,11 @@ const generateAuthLink=async (req,res)=>{
         token:randomToken,
     })
 
-    // Looking to send emails in production? Check out our Email API/SMTP product!
-    // Looking to send emails in production? Check out our Email API/SMTP product!
-    const transport = nodemailer.createTransport({
-        host: "sandbox.smtp.mailtrap.io",
-        port: 2525,
-        auth: {
-        user: "3fb0cbd3a81637",
-        pass: "8d35d6180d69e8"
-        }
-    });
-
     const link = `http://localhost:9000/verify?token=${randomToken}&userId=${userId}`;
 
-    await transport.sendMail({
+    mail.sendVerificationMail({
+        link,
         to:user.email,
-        from:"verification@myapp.com",
-        subject:"Verify your account",
-        html:`<div>
-        <p>Please click on <a href="${link}">this link<a> to verify your email.</p>
-        </div>`
     })
 
     res.json({ message: "Please check you email for link." });
