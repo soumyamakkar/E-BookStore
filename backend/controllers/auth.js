@@ -3,6 +3,7 @@ const UserModel = require('../models/user');
 const nodemailer=require('nodemailer');
 const VerificationTokenModel = require('../models/verificationToken');
 const mail = require('../utils/mail');
+const { sendErrorResponse } = require('../utils/helper');
 
 const generateAuthLink=async (req,res)=>{
     //Generate authentication link
@@ -39,6 +40,41 @@ const generateAuthLink=async (req,res)=>{
     res.json({ message: "Please check you email for link." });
 }
 
+const verifyAuthToken=async (req,res)=>{
+    const {token,userId}=req.query;
+
+    if(typeof token!=="string" || typeof userId!=="string"){
+        return sendErrorResponse({
+            status:403,
+            message:"Invalid request!",
+            res,
+        });
+    }
+
+    const verificationToken = await VerificationTokenModel.findOne({userId});
+    if(!verificationToken || !verificationToken.compare(token)){
+        return sendErrorResponse({
+            status:403,
+            message:"Invalid request, token mismatch!",
+            res,
+        });
+    }
+
+    const user=await UserModel.findById(userId);
+    if(!user){
+        return sendErrorResponse({
+            status:500,
+            message:"Something went wrong, user not found!".
+            res,
+        });
+    }
+
+    await VerificationTokenModel.findByIdAndDelete(verificationToken._id);
+
+    res.json({});
+}
+
+
 module.exports = {
-    generateAuthLink
+    generateAuthLink,verifyAuthToken
 };
